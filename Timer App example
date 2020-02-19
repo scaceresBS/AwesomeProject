@@ -1,0 +1,41 @@
+let timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(fire), userInfo: nil, repeats: true)
+
+@objc func fire() 
+{
+    print("FIRE!!!")
+}
+let timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { timer in
+    print("FIRE!!!")
+})
+timer.invalidate()
+let timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(fire(timer:)), userInfo: ["score": 10], repeats: true)
+
+@objc func fire(timer: Timer) 
+{
+    if  let userInfo = timer.userInfo as? [String: Int],
+        let score = userInfo["score"] {
+
+        print("You scored \(score) points!")
+    }
+}
+var timer:Timer?
+var timeLeft = 60
+timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(onTimerFires), userInfo: nil, repeats: true)
+@objc func onTimerFires()
+{
+    timeLeft -= 1
+    timeLabel.text = "\(timeLeft) seconds left"
+
+    if timeLeft <= 0 {
+        timer.invalidate()
+        timer = nil
+    }
+}
+let timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(fire), userInfo: nil, repeats: true)
+timer.tolerance = 0.2
+let timer = Timer(timeInterval: 1.0, target: self, selector: #selector(fire), userInfo: nil, repeats: true)
+
+RunLoop.current.add(timer, forMode: .commonModes)
+DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {  
+    print("BOOYAH!")
+}
