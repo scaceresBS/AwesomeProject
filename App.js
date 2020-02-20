@@ -1,11 +1,8 @@
 import React, { Component} from 'react'
-import { StyleSheet, Text, View, ScrollView }  from 'react-native'
+import { 
+  StyleSheet, Text, View, ScrollView, TouchableOpacity 
+}  from 'react-native'
 import moment from 'moment' //Used to parse time... Terminal(yarn add moment)
-
-const DATA = {
-  timer: 1234567,
-  laps: [12345, 2345, 34567, 98765],
-}
 
 function Timer({ interval, style}) {
   const duration = moment.duration(interval)
@@ -17,13 +14,17 @@ function Timer({ interval, style}) {
   )
 }
 
-function RoundButton({ title, color, background}){ //Three proeprties of button
+function RoundButton({ title, color, background, onPress, disabled}){ //Three proeprties of button
  return(
-   <View style={[ styles.button, { backgroundColor: background}]}>
+   <TouchableOpacity
+     onPress={() => !disabled && onPress()}
+     style={[ styles.button, { backgroundColor: background}]}
+     activeOpacity= {disabled ? 1.0 : 0.7}
+   >
      <View style = {styles.buttonBorder}>
       <Text style={[styles.buttonTitle, { color }]}>{title}</Text>
      </View> 
-   </View>
+   </TouchableOpacity>
  )
 }
 function Lap({ number, interval, fastest, slowest}){
@@ -71,15 +72,41 @@ function ButtonsRow({ children }) {
  )
 }
 export default class App extends Component {
+   constructor(props) {
+     super(props)
+     this.state = {
+      start: 0,
+      now: 0,
+      laps: [],
+     }
+   }
+
+start = () => {
+  const now = new Date().getTime()
+  this.setState({
+    start: now,
+    now,
+    laps: [0]
+  })
+  this.timer = setInterval(() => {
+    this.setState({ now: new Date().getTime()})
+  }, 100)
+}
    render() {
+     const{ start, now, laps} = this.state
+     const timer = now - start
      return (
        <View style = {styles.container}>
-         <Timer interval ={DATA.timer} style={styles.timer}/>
+         <Timer interval ={timer} style={styles.timer}/>
          <ButtonsRow>
            <RoundButton title= 'Reset' color= '#FFFFFF' background= '#3D3D3D'/>
-           <RoundButton title= 'Start' color= '#50D167' background= '#1B361F'/>
+           <RoundButton
+             title= 'Start' 
+             color= '#50D167' 
+             background= '#1B361F'
+             onPress = {this.start}/>
          </ButtonsRow>
-         <LapsTable laps={DATA.laps} />
+         <LapsTable laps={laps} />
        </View>
      );
    }
@@ -88,7 +115,7 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
      flex: 1,
-     backgroundColor: '#0D0D0D',  //Color of Background 
+     backgroundColor: '#0066FF',  //Color of Background 
      alignItems: 'center',
      paddingTop: 130,             //Spaces down text (not hidden from notch)
      paddingHorizontal: 20,
