@@ -5,12 +5,15 @@ import {
 import moment from 'moment' //Used to parse time... Terminal(yarn add moment)
 
 function Timer({ interval, style}) {
+  const pad = (n) => n < 10 ? '0' + n: n
   const duration = moment.duration(interval)
   const centiseconds = Math.floor(duration.milliseconds()/10) //turns milli into 2 dec centi
   return (
-  <Text style={style}>
-    {duration.minutes()}:{duration.seconds()}:{centiseconds}
-  </Text>
+  <View style= {styles.timerContainer}>
+    <Text style={style}> {pad(duration.minutes())}: </Text>
+    <Text style={style}> {pad(duration.seconds())}: </Text>
+    <Text style={style}> {pad(centiseconds)} </Text>
+  </View>
   )
 }
 
@@ -41,7 +44,7 @@ function Lap({ number, interval, fastest, slowest}){
   )
 }
 
-function LapsTable({ laps}) {
+function LapsTable({ laps, timer }) {
   const finishedLaps = laps.slice(1)
   let min = Number.MAX_SAFE_INTEGER
   let max = Number.MIN_SAFE_INTEGER
@@ -57,7 +60,7 @@ function LapsTable({ laps}) {
         <Lap 
          number={laps.length - index}  //warning? 24:40?
          key={laps.length - index} 
-         interval={lap} 
+         interval={index == 0 ? timer + lap : lap} 
          fastest={lap == min}
          slowest={lap == max}
          />
@@ -92,12 +95,24 @@ start = () => {
     this.setState({ now: new Date().getTime()})
   }, 100)
 }
+
+lap = () => {
+  const timestamp = new Date().getTime()
+  const { laps, now, start }= this.state
+  const [ firstLap, ...other ] = laps
+  this.setState({
+    laps: [0, firstLap + now - start, ...other], 
+    start: timestamp,
+    now: timestamp,
+  })
+}
    render() {
      const{ start, now, laps} = this.state
      const timer = now - start
      return (
        <View style = {styles.container}>
          <Timer interval ={timer} style={styles.timer}/>
+         {laps.length == 0 && (
          <ButtonsRow>
            <RoundButton title= 'Reset' color= '#FFFFFF' background= '#3D3D3D'/>
            <RoundButton
@@ -106,7 +121,24 @@ start = () => {
              background= '#1B361F'
              onPress = {this.start}/>
          </ButtonsRow>
-         <LapsTable laps={laps} />
+         )}
+         {start > 0 && (
+          <ButtonsRow>
+           <RoundButton 
+             title= 'Lap' 
+             color= '#FFFFFF' 
+             background= '#3D3D3D'
+             onPress={this.lap}
+           />
+           <RoundButton
+             title= 'Stop' 
+             color= '#E33935' 
+             background= '#3C1715'
+             onPress = {this.stop}
+            />
+          </ButtonsRow>
+         )}
+         <LapsTable laps={laps} timer= {timer}/>
        </View>
      );
    }
@@ -115,7 +147,7 @@ start = () => {
 const styles = StyleSheet.create({
   container: {
      flex: 1,
-     backgroundColor: '#0066FF',  //Color of Background 
+     backgroundColor: '#0D0D0D',  //Color of Background ...blue #0066FF
      alignItems: 'center',
      paddingTop: 130,             //Spaces down text (not hidden from notch)
      paddingHorizontal: 20,
@@ -124,6 +156,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 76,            //Controls text size
     fontWeight: '200',       //Controls text thickness
+    width: 125,
   },
   button: {
     width: 80,
@@ -153,6 +186,7 @@ const styles = StyleSheet.create({
   lapText: {
     color: '#FFFFFF',
     fontSize: 18,
+    width: 45,
   },
   lap: {
     flexDirection: 'row',
@@ -170,7 +204,10 @@ const styles = StyleSheet.create({
   slowest: {
     color: '#CC3531',
   },
+  timerContainer: {
+    flexDirection: 'row',
+  },
 })
 
 //All athestics are complete... now start working on user input! or actual use!
-//Time: 35:00
+//Time: 45:30
